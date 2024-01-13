@@ -3,13 +3,35 @@
 import serial
 import struct
 
-#cmd = b'Get precise AZM-ALT'
-#cmd = b'Get RA/DEC'
-#cmd = b'Get Tracking Mode'
-#cmd = b'Get Version'
-#cmd = b'P 1 16 0 0 0 2'
-#cmd = b'K01'
-#cmd = b'm'
+class BaseSerial(base):
+    def __init__(self, port='/dev/ttyUSB0', baudrate=9600, timeout=0.5):
+        self.port = port
+        self.baudrate = baudrate
+        self.timeout = timeout
+        self.ser = serial.Serial(port, baudrate, timeout=timeout)
+
+    def send(self, cmd):
+        self.ser.write(cmd)
+
+    def read(self):
+        data = b''
+        while True:
+            line = self.ser.readline()
+            if not line:
+                break
+            data += line
+        return data
+
+    def close(self):
+        self.ser.close()
+
+    def __del__(self):
+        self.close()
+
+class MountSerial(BaseSerial):
+    def __init__(self, port='/dev/ttyUSB0', baudrate=9600, timeout=0.5):
+        super().__init__(port, baudrate, timeout)
+    
 d = [1,178,4,0,0,0,2]
 cmd = struct.pack('s7B',b'P',*d)
 # Open the serial port with a timeout of 1 second
