@@ -1,14 +1,32 @@
 import serial
+import struct
 
+#cmd = b'Get precise AZM-ALT'
+#cmd = b'Get RA/DEC'
+#cmd = b'Get Tracking Mode'
+#cmd = b'Get Version'
+#cmd = b'P 1 16 0 0 0 2'
+#cmd = b'K01'
+#cmd = b'm'
+d = [1,178,4,0,0,0,2]
+cmd = struct.pack('s7B',b'P',*d)
 # Open the serial port with a timeout of 1 second
 ser = serial.Serial('/dev/ttyUSB0', 9600, timeout=1)
 
 # Send data over UART
-ser.write(b'Get AZM-ALT')
+print(cmd)
+ser.write(cmd)
 
 # Read data from UART
-data = ser.readline()
+data = b''
+while True:
+    line = ser.readline()
+    if not line:
+        break
+    data += line
+
 print(data)
+
 
 # Close the serial port
 ser.close()
