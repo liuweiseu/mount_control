@@ -1,3 +1,5 @@
+#! /usr/bin/env python3
+
 import serial
 import struct
 
@@ -11,7 +13,7 @@ import struct
 d = [1,178,4,0,0,0,2]
 cmd = struct.pack('s7B',b'P',*d)
 # Open the serial port with a timeout of 1 second
-ser = serial.Serial('/dev/ttyUSB0', 9600, timeout=1)
+ser = serial.Serial('/dev/ttyUSB0', 9600, timeout=0.5)
 
 # Send data over UART
 print(cmd)
@@ -25,7 +27,8 @@ while True:
         break
     data += line
 
-print(data)
+d = struct.unpack('%dBs'%(len(data)-1),data)
+print(d)
 
 
 # Close the serial port
