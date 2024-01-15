@@ -1,5 +1,28 @@
 #! /usr/bin/env python3
 
+'''
+Each command is implemented in a dict.
+The code will get the dict, and then send the cmd and parse the response from the mount.
+
+There are some keys included in each dict:
+(1) 'cmd': 
+    This is the command sent to the mount.
+(2) 'rfmt': 
+    This is the response format.
+    Example:
+        When we send `E`, we will get '34AB,12CE#', which is unpacked as 4 strings:'34AB', ',', '12CE' and '#'.
+        So the rfmt is `4s1s4s1s`.
+(3) 'roffset'(optional):
+    This means which parts are valid in the unpacked strings.
+    Example:
+        We unpacked the response, and got 4 strings: :'34AB', ',', '12CE' and '#'.
+        '34AB' and '12CE' are the valid data, so roffset should be [0,2].
+(4) 'parameter':
+    This is the input paramater in some commands.
+(5) 'poffset':
+    This means which data are variable in the parameter.
+'''
+
 import serial
 import struct
 
