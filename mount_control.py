@@ -30,29 +30,58 @@ import struct
 GetRaDecCmd = {
     'cmd'       : 'E',
     'rfmt'      : '4s1s4s1s',
-    'roffset'   : [0,2],
-    'encode'    : 16
+    'rdloc'     : [0,2],
+    'rencode'    : 16
 }
 
 GetPreciseRaDecCmd = {
     'cmd'       : 'e',
     'rfmt'      : '8s1s8s1s',
-    'roffset'   : [0,2],
-    'encode'    : 16
+    'rdloc'     : [0,2],
+    'rencode'    : 16
 } 
 
 GetAltAzCmd = {
     'cmd'       : 'Z',
     'rfmt'      : '4s1s4s1s',
-    'roffset'   : [0,2],
-    'encode'    : 16
+    'rdloc'     : [0,2],
+    'rencode'    : 16
 }
 
 GetPreciseAltAzCmd = {
     'cmd'       : 'z',
     'rfmt'      : '8s1s8s1s',
-    'roffset'   : [0,2],
-    'encode'    : 16
+    'rdloc'     : [0,2],
+    'rencode'    : 16
+}
+
+# GOTO Commands
+GotoRaDecCmd = {
+    'cmd'       : 'R',
+    'sfmt'      : '1s4s1s4s',
+    'sdloc'     : [1,3],
+    'rfmt'      : '1s'
+}
+
+GotoPreciseRaDecCmd = {
+    'cmd'       : 'r',
+    'sfmt'      : '1s8s1s8s',
+    'sdloc'     : [1,3],
+    'rfmt'      : '1s'
+}
+
+GotoAltAzCmd = {
+    'cmd'       : 'B',
+    'sfmt'      : '1s4s1s4s',
+    'sdloc'     : [1,3],
+    'rfmt'      : '1s'   
+}
+
+GotoPreciseAltAzCmd = {
+    'cmd'       : 'b',
+    'sfmt'      : '1s8s1s8s',
+    'sdloc'     : [1,3],
+    'rfmt'      : '1s'
 }
 
 CelestronNexStarCmds = {
@@ -61,6 +90,7 @@ CelestronNexStarCmds = {
     'GetPreciseRaDec'       : GetPreciseRaDecCmd,
     'GetAltAz'              : GetAltAzCmd,
     'GetPreciseAltAz'       : GetPreciseAltAzCmd
+    # Goto Commands
 }
 
 class BaseSerial(object):
@@ -114,14 +144,14 @@ class SendCmd_Wrapper(BaseSerial):
             rfmt = self.cmd['rfmt']
         else:
             rfmt = 's'
-        if 'roffset' in self.cmd:
-            roffset = self.cmd['roffset']
+        if 'rdloc' in self.cmd:
+            rdloc = self.cmd['rdloc']
         else:
             roffset = -1
-        if 'encode' in self.cmd:
-            encode = self.cmd['encode']
+        if 'rencode' in self.cmd:
+            rencode = self.cmd['rencode']
         else:
-            encode = -1
+            rencode = -1
         # pack the data    
         cmdbytes = struct.pack('%ds%dB'%(len(cmd),len(data)), cmd, *data)
         if verbose:
@@ -130,8 +160,8 @@ class SendCmd_Wrapper(BaseSerial):
         rbytes = self.read()
         r = struct.unpack(rfmt, rbytes)
         rdata = []
-        for i in roffset:
-            rdata.append(int(r[i], encode))
+        for i in rdloc:
+            rdata.append(int(r[i], rencode))
         return rdata
 
 class MountSerial(object):
