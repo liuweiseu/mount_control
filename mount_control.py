@@ -37,14 +37,13 @@ class BaseSerial(object):
         
 # wrapper class for sending commands
 class SendCmd_Wrapper(BaseSerial):
-    def __init__(self, port, baudrate, timeout, cmd, data):
+    def __init__(self, port, baudrate, timeout, cmd):
         super().__init__(port, baudrate, timeout)
         self.cmd = cmd
-        self.data = data
 
-    def sendcmd(self):
+    def sendcmd(self, data=[]):
+        print(data)
         cmd = bytes(self.cmd, 'utf-8')
-        data = self.data
         cmdbytes = struct.pack('%ds%dB'%(len(cmd),len(data)), cmd, *data)
         self.send(cmdbytes)
         return self.read()
@@ -59,7 +58,7 @@ class MountSerial(object):
 
     def __InitMethods(self):
         for k in self.cmds:
-            cmdobj = SendCmd_Wrapper(self.port, self.baudrate, self.timeout, self.cmds[k], [])
+            cmdobj = SendCmd_Wrapper(self.port, self.baudrate, self.timeout, self.cmds[k])
             setattr(self, k, cmdobj.sendcmd)
     
 
