@@ -36,24 +36,30 @@ class BaseSerial(object):
         self.close()
         
 # wrapper class for sending commands
-class SendCmd_Wrapper(object):
-    def __init__(self, ser, cmd):
-        self.ser = ser
-        self.cmd = cmd
-
-    def sendcmd(self, cmd, data):
-        self.sr.send(cmd)
-        return self.ser.read()
-
-class MountSerial(BaseSerial):
-    def __init__(self, port='/dev/ttyUSB0', baudrate=9600, timeout=0.5, cmds=CelestronNexStarCmds):
+class SendCmd_Wrapper(BaseSerial):
+    def __init__(self, port, baudrate, timeout, cmd, data):
         super().__init__(port, baudrate, timeout)
+        self.cmd = cmd
+        self.data = data
+
+    def sendcmd(self):
+        cmd = bytes(self.cmd, 'utf-8')
+        data = self.data
+        cmdbytes = struct.pack('%ds%dB'%(len(cmd),len(data)), cmd, *data)
+        self.send(cmdbytes)
+        return self.read()
+
+class MountSerial(object):
+    def __init__(self, port='/dev/ttyUSB0', baudrate=9600, timeout=0.5, cmds=CelestronNexStarCmds):
         self.port = port
+        self.baudrate = baudrate
+        self.timeout = timeout
         self.cmds = cmds
-    
+        self.__InitMethods()
+
     def __InitMethods(self):
-        for k in self.cmds():
-            cmdobj = SendCmd_Wrapper(self.ser, self.cmds[k])
+        for k in self.cmds:
+            cmdobj = SendCmd_Wrapper(self.port, self.baudrate, self.timeout, self.cmds[k], [])
             setattr(self, k, cmdobj.sendcmd)
     
 
