@@ -28,60 +28,115 @@ import struct
 
 # Get Position Commands Dict
 GetRaDecCmd = {
-    'cmd'       : 'E',
+    'cmd'       : b'E',
+    'sfmt'      : 's',
     'rfmt'      : '4s1s4s1s',
-    'rdloc'     : [0,2],
-    'rencode'    : 16
+    'rdataloc'  : [0,2],
+    'rencode'   : 16
 }
 
 GetPreciseRaDecCmd = {
-    'cmd'       : 'e',
+    'cmd'       : b'e',
+    'sfmt'      : 's',
     'rfmt'      : '8s1s8s1s',
-    'rdloc'     : [0,2],
-    'rencode'    : 16
+    'rdataloc'  : [0,2],
+    'rencode'   : 16
 } 
 
 GetAltAzCmd = {
-    'cmd'       : 'Z',
+    'cmd'       : b'Z',
+    'sfmt'      : 's',
     'rfmt'      : '4s1s4s1s',
-    'rdloc'     : [0,2],
-    'rencode'    : 16
+    'rdataloc'  : [0,2],
+    'rencode'   : 16
 }
 
 GetPreciseAltAzCmd = {
-    'cmd'       : 'z',
+    'cmd'       : b'z',
+    'sfmt'      : 's',
     'rfmt'      : '8s1s8s1s',
-    'rdloc'     : [0,2],
-    'rencode'    : 16
+    'rdataloc'  : [0,2],
+    'rencode'   : 16
 }
 
 # GOTO Commands
 GotoRaDecCmd = {
-    'cmd'       : 'R',
+    'cmd'       : b'R',
+    'sdata'     : [b'0000', b',', b'0000'],
     'sfmt'      : '1s4s1s4s',
-    'sdloc'     : [1,3],
+    'maxsdata'  : 2**16,
+    'sdataloc'  : [0,2],
     'rfmt'      : '1s'
 }
 
 GotoPreciseRaDecCmd = {
-    'cmd'       : 'r',
+    'cmd'       : b'r',
+    'sdata'     : [b'00000000', b',', b'00000000'],
     'sfmt'      : '1s8s1s8s',
-    'sdloc'     : [1,3],
+    'maxsdata'  : 2**32,
+    'sdataloc'  : [1,3],
     'rfmt'      : '1s'
 }
 
 GotoAltAzCmd = {
-    'cmd'       : 'B',
+    'cmd'       : b'B',
+    'sdata'     : [b'0000', b',', b'0000'],
     'sfmt'      : '1s4s1s4s',
-    'sdloc'     : [1,3],
+    'maxsdata'  : 2**16,
+    'sdataloc'  : [1,3],
     'rfmt'      : '1s'   
 }
 
 GotoPreciseAltAzCmd = {
-    'cmd'       : 'b',
+    'cmd'       : b'b',
+    'sdata'     : [b'00000000', b',', b'00000000'],
     'sfmt'      : '1s8s1s8s',
-    'sdloc'     : [1,3],
+    'maxsdata'  : 2**32,
+    'sdataloc'  : [1,3],
     'rfmt'      : '1s'
+}
+
+# Sync
+
+# Tracking Commands
+GetTrackingModeCmd = {
+    'cmd'       : b't',
+    'sdata'     : [],
+    'sfmt'      : 's',
+    'rfmt'      : '1B1s',
+    'rdataloc'  : [0],
+    'rencode'   : 10
+}
+
+# TimeLocation Commands
+
+# GPS commands
+GPSLinkStatusCmd = {
+    'cmd'       : b'P',
+    'sfmt'      : 's7B',
+    'sdata'     : [1, 176, 55, 0, 0, 0 ,1],
+    'rfmt'      : '1B1s',
+    'rdataloc'  : [0],
+    'rencode'   : 10
+}
+
+# RTC Commands
+GetDateCmd = {
+    'cmd'       : b'P',
+    'sfmt'      : 's7B',
+    'sdata'     : [1, 178, 3, 0, 0, 0, 2],
+    'rfmt'      : '2B1s',
+    'rdataloc'  : [0,1],
+    'rencode'   : 10
+}
+
+GetYearCmd = {
+    'cmd'       : b'P',
+    'sfmt'      : 's7B',
+    'sdata'     : [1, 178, 4, 0, 0, 0, 2],
+    'rfmt'      : '2B1s',
+    'rdataloc'  : [0,1],
+    'rencode'   : 10
 }
 
 CelestronNexStarCmds = {
@@ -89,9 +144,42 @@ CelestronNexStarCmds = {
     'GetRaDec'              : GetRaDecCmd,
     'GetPreciseRaDec'       : GetPreciseRaDecCmd,
     'GetAltAz'              : GetAltAzCmd,
-    'GetPreciseAltAz'       : GetPreciseAltAzCmd
+    'GetPreciseAltAz'       : GetPreciseAltAzCmd,
     # Goto Commands
+    'GotoRaDec'             : GotoRaDecCmd,
+    'GotoPriceseRaDec'      : GotoPreciseRaDecCmd,
+    'GotoAltAz'             : GotoAltAzCmd,
+    'GotoPreciseAltAz'      : GotoPreciseAltAzCmd,
+    # Sync Commands
+    # TODO
+    # Tracking Commands
+    'GetTrackingMode'       : GetTrackingModeCmd,
+    # GPS
+    'GPSLinkStatus'         : GPSLinkStatusCmd,
+    # RTC
+    'GetDate'               : GetDateCmd,
+    'GetYear'               : GetYearCmd
 }
+
+# convert the data type to the template's data type
+#
+def __convtype(template, d, encode):
+    if encode == 10:
+        e = 'd'
+    elif encode == 16:
+        e = 'x'
+    if type(template) == bytes:
+        tmp = format(d, '0%d%s'%(len(template), e))
+        return bytes(tmp, 'utf-8')
+    elif type(template) == int:
+        return d
+
+# convert the Dict to a object.
+# All of the keys-vals are the var member in the obj.
+#
+class DictVar(object):
+    def __init__(self, d):
+        self.__dict__.update(d)
 
 class BaseSerial(object):
     def __init__(self, port='/dev/ttyUSB0', baudrate=9600, timeout=0.5):
@@ -126,42 +214,44 @@ class SendCmd_Wrapper(BaseSerial):
 
     def sendcmd(self, data=[] , verbose = False):
         '''
-        each is a dict, which contains cmd, data, offset, 
+        each cmd is a dict, which contains cmd, data, offset, 
         response format, response offset and encode method
         '''
-        # cmd is always in the dict
-        cmd = bytes(self.cmd['cmd'], 'utf-8')
-        # besides cmd, other keys may not be in the dict
-        if 'data' in self.cmd: 
-            data = self.cmd['data']
-        else:
-            data = []
-        if 'offset' in self.cmd:
-            offset = self.cmd['offset']
-        else:
-            offset = []
-        if 'rfmt' in self.cmd:
-            rfmt = self.cmd['rfmt']
-        else:
-            rfmt = 's'
-        if 'rdloc' in self.cmd:
-            rdloc = self.cmd['rdloc']
-        else:
-            roffset = -1
-        if 'rencode' in self.cmd:
-            rencode = self.cmd['rencode']
-        else:
-            rencode = -1
+        # convert the dict to an obj
+        c = DictVar(self.cmd)
+        # process send
+        # check if sdata is here
+        if not hasattr(c, 'sdata'):
+            c.sdata = []
+        # we need replace some data to be sent
+        # if sdataloc is here
+        if hasattr(c, 'sdataloc'):
+            index = 0
+            for i in c.sdataloc:
+                c.sdata[i] = data[index]
+                index += 1
         # pack the data    
-        cmdbytes = struct.pack('%ds%dB'%(len(cmd),len(data)), cmd, *data)
+        cmdbytes = struct.pack(c.sfmt, c.cmd, *c.sdata)
         if verbose:
             print('cmd: %s'%cmdbytes)
         self.send(cmdbytes)
+
+        # process recv
         rbytes = self.read()
-        r = struct.unpack(rfmt, rbytes)
-        rdata = []
-        for i in rdloc:
-            rdata.append(int(r[i], rencode))
+        if verbose:
+            print('rbytes: ', rbytes)
+        r = struct.unpack(c.rfmt, rbytes)
+        if len(c.rdataloc) > 0  and len(rbytes) > 0:
+            rdata = []
+            for i in c.rdataloc:
+                if type(r[i]) == bytes:
+                    rdata.append(int(r[i], c.rencode))
+                else:
+                    rdata.append(r[i])
+        elif len(rbytes) > 0:
+            rdata = 0
+        else:
+            rdata = -1
         return rdata
 
 class MountSerial(object):
