@@ -7,20 +7,31 @@ The code will get the dict, and then send the cmd and parse the response from th
 There are some keys included in each dict:
 (1) 'cmd': 
     This is the command sent to the mount.
-(2) 'rfmt': 
+(2) 'sfmt':
+    This is the format of the data to be sent.
+    Example:
+        When we send `E`, the format is 's'.
+(3) 'sdata'(optional):
+    This is the data to be sent besides the one byte cmd
+(4) 'sdataloc'(optional):
+    This means which data are variable in 'sdata'.
+    Example:
+        When we send `GotoRaDecCmd`, it's 'R1234,5678'.
+        'R' is in the cmd section; '1234',',' and '5678' is in the 'sdata' section.
+        '1234' and '5678' are varibale, so sdataloc should be [0,2] to indicate the 1st and 3rd data in the 'sdata' section.
+(5) 'rfmt': 
     This is the response format.
     Example:
         When we send `E`, we will get '34AB,12CE#', which is unpacked as 4 strings:'34AB', ',', '12CE' and '#'.
         So the rfmt is `4s1s4s1s`.
-(3) 'roffset'(optional):
+(6) 'rdataloc'(optional):
     This means which parts are valid in the unpacked strings.
     Example:
         We unpacked the response, and got 4 strings: :'34AB', ',', '12CE' and '#'.
-        '34AB' and '12CE' are the valid data, so roffset should be [0,2].
-(4) 'parameter':
-    This is the input paramater in some commands.
-(5) 'poffset':
-    This means which data are variable in the parameter.
+        '34AB' and '12CE' are the valid data, so rdataloc should be [0,2].
+(7) 'rencode':
+    This shows the encode method of the response.
+    If it's 16, the response will be encoded as hex.
 '''
 
 import serial
@@ -59,7 +70,7 @@ GetPreciseAltAzCmd = {
     'rencode'   : 16
 }
 
-# GOTO Commands
+# GOTO Commands Dict
 GotoRaDecCmd = {
     'cmd'       : b'R',
     'sdata'     : [b'0000', b',', b'0000'],
@@ -96,9 +107,10 @@ GotoPreciseAltAzCmd = {
     'rfmt'      : '1s'
 }
 
-# Sync
+# Sync Commands Dict
+# TODO
 
-# Tracking Commands
+# Tracking Commands Dict
 GetTrackingModeCmd = {
     'cmd'       : b't',
     'sdata'     : [],
@@ -108,9 +120,10 @@ GetTrackingModeCmd = {
     'rencode'   : 10
 }
 
-# TimeLocation Commands
+# TimeLocation Commands Dict
+# TODO
 
-# GPS commands
+# GPS commands Dict
 GPSLinkStatusCmd = {
     'cmd'       : b'P',
     'sfmt'      : 's7B',
@@ -120,7 +133,7 @@ GPSLinkStatusCmd = {
     'rencode'   : 10
 }
 
-# RTC Commands
+# RTC Commands Dict
 GetDateCmd = {
     'cmd'       : b'P',
     'sfmt'      : 's7B',
@@ -154,6 +167,8 @@ CelestronNexStarCmds = {
     # TODO
     # Tracking Commands
     'GetTrackingMode'       : GetTrackingModeCmd,
+    # TimeLocation Commands
+    # TODO
     # GPS
     'GPSLinkStatus'         : GPSLinkStatusCmd,
     # RTC
