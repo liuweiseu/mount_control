@@ -202,25 +202,23 @@ class BaseSerial(object):
         self.baudrate = baudrate
         self.timeout = timeout
 
-    def send(self, cmd):
+    def open(self):
         self.ser = serial.Serial(self.port, self.baudrate, timeout=self.timeout)
+
+    def send(self, cmd):
         self.ser.write(cmd)
-        self.ser.flush()
-        self.ser.close()
 
     def read(self):
         data = b''
         while True:
-            self.ser = serial.Serial(self.port, self.baudrate, timeout=self.timeout)
             line = self.ser.readline()
             if not line:
                 break
             data += line
-        self.ser.flush()
-        self.ser.close()
         return data
        
     def close(self):
+        self.ser.flush()
         self.ser.close()
 
     def __del__(self):
@@ -254,10 +252,14 @@ class SendCmd_Wrapper(BaseSerial):
         cmdbytes = struct.pack(c.sfmt, c.cmd, *c.sdata)
         if verbose:
             print('cmd: %s'%cmdbytes)
+        # open the port before sending and reading
+        self.open()
         self.send(cmdbytes)
 
         # process recv
         rbytes = self.read()
+        # close the port after sending and reading
+        self.close()
         if verbose:
             print('rbytes: ', rbytes)
         r = struct.unpack(c.rfmt, rbytes)
