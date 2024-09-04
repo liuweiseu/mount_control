@@ -201,18 +201,23 @@ class BaseSerial(object):
         self.port = port
         self.baudrate = baudrate
         self.timeout = timeout
-        self.ser = serial.Serial(port, baudrate, timeout=timeout)
 
     def send(self, cmd):
+        self.ser = serial.Serial(self.port, self.baudrate, timeout=self.timeout)
         self.ser.write(cmd)
+        self.ser.flush()
+        self.ser.close()
 
     def read(self):
         data = b''
         while True:
+            self.ser = serial.Serial(self.port, self.baudrate, timeout=self.timeout)
             line = self.ser.readline()
             if not line:
                 break
             data += line
+        self.ser.flush()
+        self.ser.close()
         return data
        
     def close(self):
