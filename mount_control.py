@@ -36,6 +36,7 @@ There are some keys included in each dict:
 
 import serial
 import struct
+import time
 
 # Get Position Commands Dict
 GetRaDecCmd = {
@@ -255,7 +256,7 @@ class SendCmd_Wrapper(BaseSerial):
         # open the port before sending and reading
         self.open()
         self.send(cmdbytes)
-
+        time.sleep(0.5)
         # process recv
         rbytes = self.read()
         # close the port after sending and reading
