@@ -202,6 +202,7 @@ class BaseSerial(object):
         self.port = port
         self.baudrate = baudrate
         self.timeout = timeout
+        self.ser = None
 
     def open(self):
         self.ser = serial.Serial(self.port, self.baudrate, timeout=self.timeout)
