@@ -224,7 +224,8 @@ class BaseSerial(object):
         self.ser.close()
 
     def __del__(self):
-        self.close()
+        #self.close()
+        pass
         
 # wrapper class for sending commands
 class SendCmd_Wrapper(BaseSerial):
