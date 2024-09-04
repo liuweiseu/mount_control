@@ -220,7 +220,7 @@ class BaseSerial(object):
         return data
        
     def close(self):
-        self.ser.flush()
+        #self.ser.flush()
         self.ser.close()
 
     def __del__(self):
